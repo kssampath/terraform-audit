@@ -2,7 +2,6 @@ from pathlib import Path
 import re
 from dataclasses import dataclass
 
-from matplotlib import lines
 
 @dataclass
 class Finding:
