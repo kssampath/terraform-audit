@@ -52,7 +52,6 @@ def test_find_tf_files(tmp_path):
     (tmp_path / "variables.tf").write_text("variable {}")
     (tmp_path / "README.md").write_text("not terraform")
     # Assert — found exactly the two .tf files, ignored the .md
-
     subdir = tmp_path / "modules"
     subdir.mkdir()                          # create the subfolder
     (subdir / "nested.tf").write_text("resource {}")

@@ -6,9 +6,13 @@ on:
       - test
 
 jobs:
-  hello:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: hello
-        run: echo "Hello, world!"
+      - uses: actions/checkout@v4          # get your code onto the blank machine
+      - uses: actions/setup-python@v5      # install Python on the blank machine
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt   # install your dependencies
+      - run: pip install pytest                # install the test runner
+      - run: python -m pytest                  # run the testss
