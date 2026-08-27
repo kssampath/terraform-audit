@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: terraform-audit
+Version: 0.1.0
+Summary: Audits Terraform files for hardcoded secrets and missing tags
+Requires-Python: >=3.10
+Requires-Dist: click>=8.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"

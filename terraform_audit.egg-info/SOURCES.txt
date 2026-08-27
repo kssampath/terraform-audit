@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+terraform_audit/cli.py
+terraform_audit/core.py
+terraform_audit.egg-info/PKG-INFO
+terraform_audit.egg-info/SOURCES.txt
+terraform_audit.egg-info/dependency_links.txt
+terraform_audit.egg-info/entry_points.txt
+terraform_audit.egg-info/requires.txt
+terraform_audit.egg-info/top_level.txt
+tests/test_core.py
