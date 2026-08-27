@@ -1,101 +1,98 @@
-# tf-audit
+# terraform-audit
 
-A lightweight, dependency-light CLI that scans Terraform code for common
-security and hygiene problems: hardcoded secrets, resources exposed to the
-public network, and missing or incomplete tags. Designed to run locally and
-as a **fail-the-build gate in CI**.
+A command-line tool that audits Terraform (`.tf`) files for two common governance problems:
 
-Built as a companion to a modernised Azure Terraform platform — it catches the
-same class of misconfiguration that the migration hardened by hand (for
-example, storage accounts left with `default_action = "Allow"`).
+- **Hardcoded secrets** — passwords, API keys, access keys, and private keys assigned as literal strings.
+- **Missing required tags** — resources that don't carry the tags your organisation mandates (e.g. `owner`, `cost_center`, `environment`).
 
-## Install
+It walks a directory of Terraform, inspects each resource block, and reports findings with a severity, the line number, and a description.
+
+## Why
+
+Infrastructure-as-code makes it easy to accidentally commit a secret or ship a resource without governance tags. This tool provides a fast, dependency-light check that runs locally or in CI, catching those issues before they reach `main` or a live environment.
+
+## Installation
+
+Requires Python 3.10+.
 
 ```bash
-pip install -e .
+git clone https://github.com/kssampath/terraform-audit.git
+cd terraform-audit
+python -m pip install -e .
 ```
 
-This installs a `tf-audit` console command.
+This installs the `tf-audit` command. (Using `python -m pip` rather than bare `pip` ensures the tool installs under the same interpreter you run.)
 
 ## Usage
 
+Scan a directory of Terraform files:
+
 ```bash
-# Scan a directory (table output)
-tf-audit scan ./infra
-
-# Machine-readable output
-tf-audit scan ./infra --format json
-
-# Fail the process if any HIGH-severity issue is found (for CI)
-tf-audit scan ./infra --fail-on high
+tf-audit scan ./path/to/terraform
 ```
 
-Example output:
+Specify which tags are required (comma-separated; defaults to `owner,cost_center,environment`):
 
-```
-Found 7 issue(s):
-  HIGH    TF001  infra/main.tf:12
-           Possible hardcoded secret assigned to a string literal
-  HIGH    TF002  infra/main.tf:31
-           Resource has public network access enabled
-  MEDIUM  TF003  infra/main.tf:34
-           Network rule default_action is 'Allow' (expected 'Deny')
-  ...
-Summary: 2 high, 1 medium, 4 low
+```bash
+tf-audit scan ./infra --required-tags owner,environment,team
 ```
 
-## Rules
+See help:
 
-| ID    | Severity | What it catches |
-|-------|----------|-----------------|
-| TF001 | HIGH     | A secret-like key assigned a string literal (ignores `var.`/`data.` references and comments) |
-| TF002 | HIGH     | `public_network_access_enabled = true` |
-| TF003 | MEDIUM   | Network `default_action = "Allow"` (expected `Deny`) |
-| TF004 | LOW      | A taggable resource with no `tags` block |
-| TF005 | LOW      | A `tags` block missing a required tag (`environment`, `owner`) |
-
-Resource types that don't take tags (subnets, role assignments, etc.) are
-excluded from TF004/TF005.
-
-## Exit codes
-
-| Code | Meaning |
-|------|---------|
-| 0    | No findings at or above the `--fail-on` threshold |
-| 1    | Findings at or above the threshold (build should fail) |
-| 2    | Usage or runtime error |
-
-`--fail-on` accepts `low`, `medium`, `high`, or `never` (default). With
-`never`, the tool always exits 0 and is purely informational.
-
-## Use in CI
-
-Because it exits non-zero on findings, it drops into any pipeline as a gate
-alongside `tfsec`/`checkov`:
-
-```yaml
-- name: Custom Terraform policy audit
-  run: |
-    pip install -e .
-    tf-audit scan ./infra --fail-on high
+```bash
+tf-audit --help
+tf-audit scan --help
 ```
+
+If the `tf-audit` command isn't found (a PATH quirk on some Windows/Git Bash setups), you can always run it as a module:
+
+```bash
+python -m terraform_audit.cli scan ./path/to/terraform
+```
+
+## Example output
+
+```
+HIGH - Line 12: Possible hardcoded password
+LOW - Line 10: Resource azurerm_key_vault.key_vault missing required tag: 'owner'
+LOW - Line 10: Resource azurerm_key_vault.key_vault missing required tag: 'cost_center'
+```
+
+## How it works
+
+- **File discovery** — recursively finds every `.tf` file under the given path.
+- **Secret detection** — scans each line with regular expressions for sensitive assignments (e.g. `password = "..."`). Covers passwords, secrets, API keys, access keys, private keys, tokens, connection strings, and encryption keys. Reports the *type* of secret, never the value.
+- **Tag checking** — parses each `resource "..." "..." { ... }` block by tracking brace depth, then checks whether each required tag appears within the block.
+
+Findings from both checks are collected into a single list of `Finding` objects (severity, line, message) and printed as one report.
 
 ## Development
 
+Run the tests:
+
 ```bash
-pip install -e ".[dev]"
-pytest          # run the test suite
-ruff check .    # lint
-black .         # format
+python -m pip install -e ".[dev]"
+python -m pytest
 ```
 
-## Design notes
+Tests are self-contained (they generate their own sample Terraform via pytest's `tmp_path` fixture), so they run identically on any machine and in CI.
 
-This is a **heuristic linter, not an HCL parser**. Rules operate on file text
-with regex and light brace-tracking, which keeps the tool fast and free of a
-Terraform/HCL parsing dependency. The trade-off is that it doesn't understand
-Terraform semantics — it can't resolve variables or evaluate expressions — so
-it favours obvious, high-signal patterns over exhaustive coverage. For deep
-policy-as-code, pair it with `checkov` or OPA/Conftest; this tool exists to
-encode a few project-specific rules those don't cover, and to demonstrate a
-clean, tested, CI-ready Python CLI.
+## Continuous integration
+
+A GitHub Actions workflow (`.github/workflows/ci.yml`) runs the test suite on every push, on a clean machine, so regressions and hidden local dependencies are caught automatically.
+
+## Limitations & design notes
+
+This tool favours simplicity and zero heavy dependencies over exhaustive correctness. Known, deliberate simplifications:
+
+- **Regex/line-based parsing, not a full HCL parser.** Resource blocks are identified by tracking `{`/`}` depth per line. This is reliable for `terraform fmt`-formatted files but could miscount if braces appear inside string values or comments. A production-grade version would parse HCL properly using [`python-hcl2`](https://pypi.org/project/python-hcl2/).
+- **Tag matching is case-sensitive.** `Environment` and `environment` are treated as different tags. This matches Azure's case-sensitive tag semantics, but is worth being aware of.
+- **Tag presence, not tag scope.** A required tag is considered present if it appears as an assignment anywhere within the resource block; the tool does not strictly verify it sits inside a `tags = { }` block.
+- **Resource types that can't be tagged** (e.g. `azurerm_role_assignment`) are still checked and will report missing tags. Filtering these out is a candidate for a future version.
+
+## Possible future work
+
+- Use `python-hcl2` for robust parsing.
+- Skip resource types that don't support tags.
+- Configurable severity thresholds and a `--fail-on` flag to control the exit code for CI gating.
+- JSON output format for machine consumption.

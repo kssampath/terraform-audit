@@ -32,23 +32,18 @@ def scan_line_for_secrets(line: str, lineno: int) -> list[Finding]:
         List[Finding]: A list of potential secrets found on the line.
     """
     patterns = [
-    ("password",    "HIGH",   r'(?i)password\s*=\s*["\'].*?["\']'),
-    ("secret",      "HIGH",   r'(?i)secret\s*=\s*["\'].*?["\']'),
-    ("API key",     "MEDIUM", r'(?i)api_key\s*=\s*["\'].*?["\']'),
-    ("access key",  "MEDIUM", r'(?i)access_key\s*=\s*["\'].*?["\']'),
-    ("private key", "HIGH",   r'(?i)private_key\s*=\s*["\'].*?["\']'),
-    ("token",       "MEDIUM", r'(?i)token\s*=\s*["\'].*?["\']'),
-    ("client secret","HIGH",  r'(?i)client_secret\s*=\s*["\'].*?["\']'),
-    ("db password", "HIGH",   r'(?i)db_password\s*=\s*["\'].*?["\']'),
-    ("ssh key",     "HIGH",   r'(?i)ssh_key\s*=\s*["\'].*?["\']'),
-    ("certificate", "MEDIUM", r'(?i)certificate\s*=\s*["\'].*?["\']'),
-    ("private key file", "HIGH", r'(?i)private_key_file\s*=\s*["\'].*?["\']'),
-    ("aws secret access key", "HIGH", r'(?i)aws_secret_access_key\s*=\s*["\'].*?["\']'),
-    ("gcp service account key", "HIGH", r'(?i)gcp_service_account_key\s*=\s*["\'].*?["\']'),
-    ("azure client secret", "HIGH", r'(?i)azure_client_secret\s*=\s*["\'].*?["\']'),
-    ("jwt secret", "HIGH", r'(?i)jwt_secret\s*=\s*["\'].*?["\']'),
-    ("encryption key", "HIGH", r'(?i)encryption_key\s*=\s*["\'].*?["\']'),
-    ("db connection string", "HIGH", r'(?i)db_connection_string\s*=\s*["\'].*?["\']'),
+    # HIGH severity
+    ("password",          "HIGH",   r'(?i)password\s*=\s*["\'].*?["\']'),
+    ("secret",            "HIGH",   r'(?i)secret\s*=\s*["\'].*?["\']'),
+    ("private key",       "HIGH",   r'(?i)private_key\s*=\s*["\'].*?["\']'),
+    ("connection string", "HIGH",   r'(?i)connection_string\s*=\s*["\'].*?["\']'),
+    # MEDIUM severity
+    ("API key",           "MEDIUM", r'(?i)api_key\s*=\s*["\'].*?["\']'),
+    ("access key",        "MEDIUM", r'(?i)access_key\s*=\s*["\'].*?["\']'),
+    ("token",             "MEDIUM", r'(?i)token\s*=\s*["\'].*?["\']'),
+    # LOW severity
+    ("username",          "LOW",    r'(?i)username\s*=\s*["\'].*?["\']'),
+    ("email",             "LOW",    r'(?i)email\s*=\s*["\'].*?["\']'),
     ]
 
     findings = []
