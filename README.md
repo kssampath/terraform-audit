@@ -1,9 +1,13 @@
 # terraform-audit
 
+[![CI](https://github.com/<your-username>/terraform-audit/actions/workflows/ci.yml/badge.svg)](https://github.com/<your-username>/terraform-audit/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 A command-line tool that audits Terraform (`.tf`) files for two common governance problems:
 
-- **Hardcoded secrets** — passwords, API keys, access keys, and private keys assigned as literal strings.
-- **Missing required tags** — resources that don't carry the tags your organisation mandates (e.g. `owner`, `cost_center`, `environment`).
+- 🔑 **Hardcoded secrets** — passwords, API keys, access keys, and private keys assigned as literal strings.
+- 🏷️ **Missing required tags** — resources that don't carry the tags your organisation mandates (e.g. `owner`, `cost_center`, `environment`).
 
 It walks a directory of Terraform, inspects each resource block, and reports findings with a severity, the line number, and a description.
 
@@ -16,7 +20,7 @@ Infrastructure-as-code makes it easy to accidentally commit a secret or ship a r
 Requires Python 3.10+.
 
 ```bash
-git clone https://github.com/kssampath/terraform-audit.git
+git clone https://github.com/<your-username>/terraform-audit.git
 cd terraform-audit
 python -m pip install -e .
 ```
@@ -61,7 +65,7 @@ LOW - Line 10: Resource azurerm_key_vault.key_vault missing required tag: 'cost_
 ## How it works
 
 - **File discovery** — recursively finds every `.tf` file under the given path.
-- **Secret detection** — scans each line with regular expressions for sensitive assignments (e.g. `password = "..."`). Covers passwords, secrets, API keys, access keys, private keys, tokens, connection strings, and encryption keys. Reports the *type* of secret, never the value.
+- **Secret detection** — scans each line with regular expressions for sensitive assignments (e.g. `password = "..."`). Covers passwords, secrets, API keys, access keys, private keys, tokens, and connection strings. Reports the *type* of secret, never the value.
 - **Tag checking** — parses each `resource "..." "..." { ... }` block by tracking brace depth, then checks whether each required tag appears within the block.
 
 Findings from both checks are collected into a single list of `Finding` objects (severity, line, message) and printed as one report.
@@ -96,3 +100,7 @@ This tool favours simplicity and zero heavy dependencies over exhaustive correct
 - Skip resource types that don't support tags.
 - Configurable severity thresholds and a `--fail-on` flag to control the exit code for CI gating.
 - JSON output format for machine consumption.
+
+## License
+
+MIT
