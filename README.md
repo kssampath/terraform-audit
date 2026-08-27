@@ -1,6 +1,6 @@
 # terraform-audit
 
-[![CI](https://github.com/<your-username>/terraform-audit/actions/workflows/ci.yml/badge.svg)](https://github.com/<your-username>/terraform-audit/actions/workflows/ci.yml)
+[![CI](https://github.com/kssampath/terraform-audit/actions/workflows/ci.yml/badge.svg)](https://github.com/kssampath/terraform-audit/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -101,6 +101,3 @@ This tool favours simplicity and zero heavy dependencies over exhaustive correct
 - Configurable severity thresholds and a `--fail-on` flag to control the exit code for CI gating.
 - JSON output format for machine consumption.
 
-## License
-
-MIT
