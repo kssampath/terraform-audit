@@ -101,6 +101,3 @@ This tool favours simplicity and zero heavy dependencies over exhaustive correct
 - Configurable severity thresholds and a `--fail-on` flag to control the exit code for CI gating.
 - JSON output format for machine consumption.
 
-## License
-
-MIT
