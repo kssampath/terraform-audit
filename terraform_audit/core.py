@@ -67,29 +67,6 @@ def scan_file_for_tags(filepath: Path, required_tags: list[str]) -> list[Finding
     Returns:
         List[Finding]: A list of findings related to missing tags.
     """
-    findings = []
-    with open(filepath, 'r') as file:
-        content = file.read()
-        for tag in required_tags:
-            if f'tags = {{' in content and tag not in content:
-                findings.append(Finding(
-                    severity="MEDIUM",
-                    line=0,
-                    message=f"Missing required tag: {tag} in file {filepath.name}"
-                ))
-    return findings
-
-def scan_file_for_tags(filepath: Path, required_tags: list[str]) -> list[Finding]:
-    """
-    Scan a Terraform file for required tags.
-
-    Args:
-        filepath (Path): The path to the Terraform file.
-        required_tags (list[str]): A list of required tags to check for.
-
-    Returns:
-        List[Finding]: A list of findings related to missing tags.
-    """
     lines = filepath.read_text().splitlines()
     depth = 0
     inside_resource = False
